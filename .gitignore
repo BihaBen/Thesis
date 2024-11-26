@@ -1,0 +1,9 @@
+# Ignore Python virtual environments
+Backend/venv/
+
+# Ignore compiled Python files and cache
+__pycache__/
+*.pyc
+
+# Ignore all .exe files in the Programs directory
+Programs/*.exe
