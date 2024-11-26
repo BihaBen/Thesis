@@ -5,5 +5,17 @@ Backend/venv/
 __pycache__/
 *.pyc
 
+<<<<<<< HEAD
 # Ignore all .exe files in the Programs directory
 Programs/*.exe
+=======
+
+# Ignore environment files
+.env
+
+# Ignore FFMPEG executables
+Programs/FFMPEG/ffmpeg.exe
+Programs/FFMPEG/ffplay.exe
+Programs/FFMPEG/ffprobe.exe
+
+>>>>>>> master
