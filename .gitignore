@@ -1,0 +1,16 @@
+# Ignore Python virtual environments
+Backend/venv/
+
+# Ignore compiled Python files and cache
+__pycache__/
+*.pyc
+
+
+# Ignore environment files
+.env
+
+# Ignore FFMPEG executables
+Programs/FFMPEG/ffmpeg.exe
+Programs/FFMPEG/ffplay.exe
+Programs/FFMPEG/ffprobe.exe
+
