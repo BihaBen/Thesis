@@ -1,5 +1,5 @@
 ##########################################################################
-# FASTAPI alap backend
+# FASTAPI basic backend
 ##########################################################################
 from fastapi import FastAPI
 import os
@@ -18,7 +18,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 ##########################################################################
-# TESZT: GET végpontok
+# TEST: GET endpoints
 ##########################################################################
 stored_data = {}
 
@@ -32,10 +32,10 @@ async def get_data():
 
 @app.get("/status")
 async def get_status():
-    return {"message": "Connecting is okay!"}
+    return {"message": "Sikeres csatlakozás!"}
 
 ##########################################################################
-# Minden adat lementése a Frontendből
+# Save all data from Frontend
 ##########################################################################
 from fastapi import Form,UploadFile, File
 from typing import List
@@ -45,7 +45,7 @@ input_data={}
 
 @app.post("/api/saveAllData")
 async def save_alldata(
-    isStoreInCloudEnabled: str = Form(...),
+    isStoreInLocal: str = Form(...),
     chatbotStyle: str = Form(...),
     files: List[UploadFile] = File(...)
 ):
@@ -53,7 +53,7 @@ async def save_alldata(
     try:
         stored_data = {
             "chatbotStyle": chatbotStyle,
-            "isStoreInCloudEnabled": isStoreInCloudEnabled.lower() == "true",
+            "isStoreInLocal": isStoreInLocal.lower() == "true",
         }
 
         temp_dir = "temp_files"
@@ -77,7 +77,7 @@ async def save_alldata(
         raise HTTPException(status_code=500, detail=f"Hiba történt: {str(e)}")
     
 ##########################################################################
-# Mérföldkövek
+# Milestones
 ##########################################################################
 from pydantic import BaseModel
 
@@ -113,25 +113,36 @@ def update_milestone(update: UpdateMilestone):
     return {"error": "Mérföldkő nem található"}
 
 ##########################################################################
-# Összefoglalás generálása
+# Generate summary
 ##########################################################################
 from Chain_Handler.global_chain import global_summarizer_chain
 from Chain_Handler.local_chain import local_summarizer_chain
 from fastapi import HTTPException
+from datetime import datetime
+collection_name = "documents_01"
+from Summary_Handler.local_translatorAgent import Local_TranslationAgent
 
 @app.post("/api/createSummary")
 def write_summary():
     try:
-        print("API hívás megkezdődött")
-        chatbotStyle = input_data.get("stored_data", {}).get("chatbotStyle", "default")
-        isStoreInCloudEnabled= input_data.get("stored_data", {}).get("isStoreInCloudEnabled", "default")
+        start_time = datetime.now()
+        print("API hívás megkezdődött:", start_time.strftime("%Y-%m-%d %H:%M:%S"))
+        isStoreInLocal= input_data.get("stored_data", {}).get("isStoreInLocal", "default")
 
-        if isStoreInCloudEnabled:
+        if isStoreInLocal:
             output = local_summarizer_chain(input_data)
         else:
             output = global_summarizer_chain(input_data)
         
         final_summary = output.get("final_summary", "A végeredmény sikertelen.")
+        print("API hívás véget ért.")
+
+        #TIME
+        end_time = datetime.now()
+        elapsed_time = end_time - start_time
+        elapsed_minutes = elapsed_time.total_seconds() // 60
+        elapsed_seconds = elapsed_time.total_seconds() % 60
+        print(f"Futási idő: {int(elapsed_minutes)} perc {int(elapsed_seconds)} másodperc.")
 
         return {"final_summary": final_summary}
 
@@ -143,7 +154,7 @@ def write_summary():
         raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {str(e)}")
     
 ##########################################################################
-# Kérdés válasz
+# Question and Answer
 ##########################################################################
 from Models_Handler.global_model import GPT4
 from Models_Handler.local_model import LLAMA
@@ -154,13 +165,12 @@ class QueryRequest(BaseModel):
 async def ask_model(request: QueryRequest):
     gpt_model = GPT4()
     llama_model = LLAMA()
-    chatbotStyle = input_data.get("stored_data", {}).get("chatbotStyle", "default")
-    isStoreInCloudEnabled= input_data.get("stored_data", {}).get("isStoreInCloudEnabled", "default")
+    isStoreInLocal= input_data.get("stored_data", {}).get("isStoreInLocal", "default")
 
-    if isStoreInCloudEnabled:
-        answer = llama_model.generate_response(request.query)
+    if isStoreInLocal:
+        answer = await llama_model.generate_response(request.query, collection_name)
     else:
-        answer = gpt_model.generate_gpt4_response(request.query)
+        answer = gpt_model.generate_gpt4_response(request.query, collection_name)
 
     print(f"Kérdés: {request.query}")
     return {"response": answer}

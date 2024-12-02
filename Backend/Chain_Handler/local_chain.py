@@ -4,10 +4,11 @@ from typing import Dict
 from langchain.chains import SequentialChain
 from Milestone_Handler.common_milestone import update_milestone
 ###########################################################################
-# Fájlok betöltése és tartalmak kinyerése
+# Loading files and extracting their contents
 ###########################################################################
 import os
 from Files_Handler.common_load_file import process_files_in_directory
+collection_name="documents_01"
 
 class LoadFilesChain(Chain):
     def _call(self, inputs: Dict) -> Dict:
@@ -43,29 +44,28 @@ class LoadFilesChain(Chain):
         return ["combined_text"]
 
 ###########################################################################
-# Vektoradatbázisban eltárolás
+# Vector Database storage
 ###########################################################################
 from pydantic import BaseModel, Field
 from langchain.chains.base import Chain
 from Qdrant_Handler.local_VDB import initialize_qdrant, process_document
 
 class VectorStoreChain(Chain, BaseModel):
-    collection_name: str = Field(...)
     vector_size: int = Field(...)
 
     def _call(self, inputs: Dict) -> Dict:
         combined_text = inputs["combined_text"]
 
-        initialize_qdrant(self.collection_name, self.vector_size)
+        initialize_qdrant(collection_name, self.vector_size)
 
-        qdrantVectorbase = process_document(combined_text, self.collection_name)
+        qdrantVectorbase = process_document(combined_text, collection_name)
 
         self.Show_Result()
 
         return {"qdrant_vectorbase": qdrantVectorbase}
     
     def Show_Result(self)-> None:
-        print(f"VectorStoreChain: A fájlok sikeresen eltárolva a {self.collection_name} vektoradatbázisba.")
+        print(f"VectorStoreChain: A fájlok sikeresen eltárolva a {collection_name} vektoradatbázisba.")
         update_milestone(3, True)
     @property
     def input_keys(self):
@@ -76,7 +76,7 @@ class VectorStoreChain(Chain, BaseModel):
         return ["qdrant_vectorbase"]
 
 ###########################################################################
-# Szöveg analizálása
+# Text analysis
 ###########################################################################
 from Summary_Handler.common_contentExtraction import generate_extract_from_texts
 
@@ -111,7 +111,7 @@ class AnalyzeProcessChain(Chain):
         return ["analysis_result"]
     
 ###########################################################################
-# Tartalom összefoglalás
+# Content summary
 ###########################################################################
 from langchain.chains.base import Chain
 from Models_Handler.local_model import LLAMA
@@ -127,7 +127,7 @@ class SummarizeContentChain(Chain):
             print("SummarizeContentChain: Az elemzett tartalom összefoglalása megkezdődött.")
             llama_model = LLAMA()
 
-            summary_result = asyncio.run(llama_model.summarize_documents_with_llama(combined_text, "detailed"))
+            summary_result = asyncio.run(llama_model.summarize_documents_with_llama(combined_text,chatbotStyle,collection_name))
             
             self.Show_Result(summary_result)
             
@@ -140,6 +140,7 @@ class SummarizeContentChain(Chain):
     def Show_Result(self, summary_result:str) -> None:
         print(f"Összefoglaló:\n{summary_result}")
         update_milestone(5, True)
+        update_milestone(6, True)
 
     @property
     def input_keys(self) -> list:
@@ -160,13 +161,15 @@ class TranslateContentChain(Chain):
         summary_result = inputs["summary_result"]
         analysis_result = inputs["analysis_result"]
         translator_agent = Local_TranslationAgent()
+
         try:
             str_essence = summary_result
+            print(str_essence)
             hungarian_summary = translator_agent.instant_translate_to_hungarian(str_essence)
+            print(f"Magyarul:\n{str_essence}")
             hungarian_summary += "\n\n" + analysis_result
             self.Show_Result(hungarian_summary)
-
-            final_summary = summary_result + "\n ## Egy kis segítség a további kérdésekhez:\n" + analysis_result
+            final_summary = hungarian_summary
 
             return {"final_summary": final_summary}
         
@@ -174,7 +177,7 @@ class TranslateContentChain(Chain):
             print(f"SummarizeContentChain Error: {str(e)}")
             raise HTTPException(status_code=500, detail=f"Error in SummarizeContentChain: {str(e)}")
 
-    def Show_Result(self, hungarian_summary:str) -> None:
+    def Show_Result(self, hungarian_summary: str) -> None:
         print(f"Összefoglaló:\n{hungarian_summary}")
         update_milestone(7, True)
 
@@ -187,16 +190,15 @@ class TranslateContentChain(Chain):
         return ["final_summary"]
 
 ###########################################################################
-# Láncok inicializálása
+# Initialize chains
 ###########################################################################
-
 load_files_chain = LoadFilesChain()
-vector_store_chain = VectorStoreChain(collection_name="documents_01", vector_size=512)
+vector_store_chain = VectorStoreChain(vector_size=512)
 analyze_process_chain = AnalyzeProcessChain()
 summarize_content_chain = SummarizeContentChain()
 translate_content_chain = TranslateContentChain()
 ###########################################################################
-# Létrehozzuk a localSummarizer_chain láncot a SequentialChain segítségével
+# Create the localSummarizer_chain using SequentialChain
 ###########################################################################
 local_summarizer_chain = SequentialChain(
     chains=[load_files_chain, vector_store_chain, analyze_process_chain, summarize_content_chain, translate_content_chain],

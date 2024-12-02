@@ -4,9 +4,10 @@ from typing import Dict
 from langchain.chains import SequentialChain
 from Milestone_Handler.common_milestone import update_milestone
 ###########################################################################
-# Fájlok betöltése és tartalmak kinyerése
+# Loading files and extracting their contents
 ###########################################################################
 from Files_Handler.common_load_file import process_files_in_directory
+collection_name="documents_01"
 
 class LoadFilesChain(Chain):
     def _call(self, inputs: Dict) -> Dict:
@@ -42,29 +43,28 @@ class LoadFilesChain(Chain):
         return ["combined_text"]
 
 ###########################################################################
-# Vektoradatbázisban eltárolás
+# Vector Database storage
 ###########################################################################
 from pydantic import BaseModel, Field
 from langchain.chains.base import Chain
 from Qdrant_Handler.global_VDB import initialize_qdrant, process_document
 
 class VectorStoreChain(Chain, BaseModel):
-    collection_name: str = Field(...)
     vector_size: int = Field(...)
 
     def _call(self, inputs: Dict) -> Dict:
         combined_text = inputs["combined_text"]
 
-        initialize_qdrant(self.collection_name, self.vector_size)
+        initialize_qdrant(collection_name, self.vector_size)
 
-        qdrantVectorbase = process_document(combined_text, self.collection_name)
+        qdrantVectorbase = process_document(combined_text, collection_name)
 
         self.Show_Result()
 
         return {"qdrant_vectorbase": qdrantVectorbase}
     
     def Show_Result(self)-> None:
-        print(f"VectorStoreChain: A fájlok sikeresen eltárolva a {self.collection_name} vektoradatbázisba.")
+        print(f"VectorStoreChain: A fájlok sikeresen eltárolva a {collection_name} vektoradatbázisba.")
         update_milestone(3, True)
     @property
     def input_keys(self):
@@ -75,7 +75,7 @@ class VectorStoreChain(Chain, BaseModel):
         return ["qdrant_vectorbase"]
 
 ###########################################################################
-# Szöveg analizálása
+# Text analysis
 ###########################################################################
 from Summary_Handler.common_contentExtraction import generate_extract_from_texts
 
@@ -110,7 +110,7 @@ class AnalyzeProcessChain(Chain):
         return ["analysis_result"]
 
 ###########################################################################
-# Tartalom összefoglalás
+# Content summary
 ###########################################################################
 from langchain.chains.base import Chain
 from Models_Handler.global_model import GPT4
@@ -126,7 +126,7 @@ class SummarizeContentChain(Chain):
             chatbotStyle = stored_data.get("chatbotStyle", "clear")
             print("SummarizeContentChain: Az elemzett tartalom összefoglalása megkezdődött.")
 
-            summary_result = asyncio.run(gpt_model.generate_summary(combined_text, chatbotStyle, "documents_01"))
+            summary_result = asyncio.run(gpt_model.generate_summary(combined_text, chatbotStyle, collection_name))
 
             self.Show_Result(summary_result)
             summary_result = summary_result + "\n ## Egy kis segítség a további kérdésekhez:\n" + analysis_result
@@ -139,7 +139,8 @@ class SummarizeContentChain(Chain):
     def Show_Result(self, summary_result:str) -> None:
         print(f"Összefoglaló:\n{summary_result}")
         update_milestone(5, True)
-
+        update_milestone(6, True)
+        update_milestone(7, True)
     @property
     def input_keys(self) -> list:
         return ["analysis_result"]
@@ -149,10 +150,10 @@ class SummarizeContentChain(Chain):
         return ["final_summary"]
 
 ###########################################################################
-# Láncok inicializálása
+# Initialize chains
 ###########################################################################
 load_files_chain = LoadFilesChain()
-vector_store_chain = VectorStoreChain(collection_name="documents_01", vector_size=512)
+vector_store_chain = VectorStoreChain(vector_size=512)
 analyze_process_chain = AnalyzeProcessChain()
 summarize_content_chain = SummarizeContentChain()
 

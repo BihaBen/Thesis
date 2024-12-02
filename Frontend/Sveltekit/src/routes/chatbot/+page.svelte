@@ -12,21 +12,18 @@
   let currentBotMessage = "";
   let thinkingMessage = "Hagy gondolkozzak egy kicsit...";
   let recognition: any;
-  let uploadedFiles: string[] = []; // A feltöltött fájlok tárolása
-  let isAdditionalProcessingEnabled = false; // Switch értékének betöltése
+  let uploadedFiles: string[] = [];
+  let isAdditionalProcessingEnabled = false;
   let summaryResult=""
 
-  // Helyi változók a store értékeihez
   let chatbotStyle: string;
-  let isStoreInCloudEnabled: boolean;
+  let isStoreInLocal: boolean;
 
-  // Store adatainak betöltése
   uploadedFilesStore.subscribe(value => {
     uploadedFiles = value;
     console.log("A store tartalma a chatbot oldalon:", uploadedFiles);
   });
     
-  // Store értékének figyelése
   summaryStore.subscribe((value) => {
     summaryResult = value;
   });
@@ -43,7 +40,6 @@
       isAdditionalProcessingEnabled = JSON.parse(switchValue);
     }
 
-    // SpeechSynthesis API ellenőrzése
     if ('speechSynthesis' in window) {
       console.log('A SpeechSynthesis API támogatott!');
     } else {
@@ -108,16 +104,16 @@
       await new Promise(resolve => setTimeout(resolve, 50));
     }
 
-    // Hangos olvasás hozzáadása
+
     speakText(currentBotMessage);
   }
 
-  // Function to speak the bot's message using SpeechSynthesis API
+
   function speakText(text: string) {
-    if (isVoice) { // Csak akkor olvassa fel a szöveget, ha az isVoice false
+    if (isVoice) { 
       const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = "hu-HU"; // Beállítjuk a nyelvet magyarra
-      speechSynthesis.speak(utterance); // Kiejti a szöveget
+      utterance.lang = "hu-HU";
+      speechSynthesis.speak(utterance);
     }
   }
 
@@ -170,16 +166,13 @@
   }
 
   function saveConversation() {
-  // A beszélgetés tartalmának előkészítése
   const conversationData = messages.map((message) => ({
     sender: message.sender,
     text: message.text,
   }));
 
-  // JSON string létrehozása
   const jsonContent = JSON.stringify(conversationData, null, 2);
 
-  // Blob létrehozása és letöltés megindítása
   const blob = new Blob([jsonContent], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -237,16 +230,16 @@
   .file-list {
   padding: 0;
   margin: 0;
-  list-style-type: none; /* Lista pontok eltávolítása */
+  list-style-type: none;
 }
 
 .file-item {
-  word-wrap: break-word; /* Szavak tördelése */
-  overflow-wrap: anywhere; /* Szöveg tördelése bárhol */
-  max-width: 100%; /* Elem maximális szélessége */
-  margin-bottom: 0px; /* Alsó margó a jobb olvashatóságért */
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
+  max-width: 100%;
+  margin-bottom: 0px;
   padding: 0px 50px 0px 0px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2); /* Elválasztó vonal */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
 }
 
   .toggle-sidebar-button {
@@ -406,7 +399,6 @@
 </style>
 
 <div class="chatbot-container">
-  <!-- Lenyíló ablak (sidebar) -->
   <div class="sidebar {isSidebarOpen ? 'open' : ''}">
     <br><br>
     <h3>Feltöltött állományok:</h3>
@@ -419,7 +411,6 @@
     </ul>
   </div>
 
-  <!-- Fő tartalom terület (chat) -->
   <div class="main-content {isSidebarOpen ? 'shifted' : ''}">
     <div class="chatbot-header">
       Tartalom-összefoglaló MI
@@ -429,7 +420,6 @@
       <button class="save-button" on:click={saveConversation}></button>
     </div>
 
-    <!-- Üzenetek megjelenítése -->
     <div class="chatbot-messages">
       {#each messages as message (message.text)}
         <div class="message {message.sender}">{@html message.text}</div>
@@ -442,7 +432,6 @@
       {/if}
     </div>
 
-    <!-- Bevitel mező és küldés gomb -->
     <div class="chatbot-input-area">
       <div class="input-wrapper">
         <input class="input-field" type="text" placeholder="Írd le, miben tudok segíteni..." bind:value={inputText} on:keypress={handleKeyPress} />

@@ -53,22 +53,35 @@ class Local_TranslationAgent:
     
     def instant_translate_to_hungarian(self, text: str) -> str:
         """
-        Translate English to Hungarian, handling long texts by splitting into chunks.
+        Translate English to Hungarian sentence by sentence, and store the full translation in a variable.
         """
         try:
-            # Split the text into manageable chunks
-            chunks = self.split_text_into_chunks(text, self.en_to_hu_tokenizer, max_length=512)
-            translated_chunks = []
+            # Split the text into sentences
+            sentences = text.split(". ")
+            translated_sentences = []
 
-            # Translate each chunk
-            for chunk in chunks:
-                translated = self.en_to_hu_translator(chunk)
-                translated_chunks.append(translated[0]['translation_text'])
+            # Translate each sentence
+            for sentence in sentences:
+                sentence = sentence.strip()  # Remove extra spaces
+                if not sentence:  # Skip empty sentences
+                    continue
+                
+                # Perform the translation
+                try:
+                    translated = self.en_to_hu_translator(sentence)
+                    translated_sentences.append(translated[0]['translation_text'])
+                except Exception as e:
+                    # Handle individual sentence translation errors
+                    translated_sentences.append(f"[Hiba a fordítás során: {e}]")
 
-            # Combine the translated chunks
-            return " ".join(translated_chunks)
+            # Combine the translated sentences into full_translation
+            full_translation = ". ".join(translated_sentences)
+
+            # Return the full translation
+            return full_translation
         except Exception as e:
             return f"An error occurred during English-to-Hungarian translation: {e}"
+
 
     def instant_translate_to_english(self, text: str) -> str:
         """

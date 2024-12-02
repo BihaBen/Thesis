@@ -95,7 +95,7 @@ def upsert_embeddings(collection_name: str, embeddings: list, chunks: list):
     logging.info(f"{len(points)} embedding feltöltve a {collection_name} gyűjteménybe.")
 
 ############################################################################
-# Releváns adatok keresése
+# Search for relevant data
 ############################################################################
 def search_relevant(query: str, collection_name: str, top_k: int = 3) -> List[Dict]:
     try:
@@ -121,3 +121,40 @@ def search_relevant(query: str, collection_name: str, top_k: int = 3) -> List[Di
     except Exception as e:
         logging.error(f"Hiba történt a releváns dokumentumok keresése során: {str(e)}")
         return []
+    
+def save_text_to_qdrant(text: str, who: str, collection_name: str):
+    try:
+        # Generálj embeddinget a szövegből
+        embedding = embedding_model.encode([text], show_progress_bar=False)[0].tolist()
+        
+        # Gyűjtemény inicializálása, ha még nincs
+        try:
+            client.get_collection(collection_name)
+        except Exception:
+            vector_size = 384  # Ez az embedding modell kimenetének mérete
+            initialize_qdrant(collection_name, vector_size)
+
+        # Dokumentum készítése
+        document_payload = {
+            "chunk": text,  # A tényleges szöveg
+            "text_title": who  # A dokumentum típusa (bot vagy user)
+        }
+
+        # Pont létrehozása és feltöltés
+        point = {
+            "id": str(uuid.uuid4()),
+            "vector": embedding,
+            "payload": document_payload
+        }
+
+        client.upsert(
+            collection_name=collection_name,
+            points=[point]
+        )
+
+        logging.info(f"Dokumentum elmentve: {who}, {collection_name}")
+        return {"status": "success", "id": point["id"]}
+
+    except Exception as e:
+        logging.error(f"Hiba történt a dokumentum mentése során: {str(e)}")
+        return {"status": "error", "message": str(e)}

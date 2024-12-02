@@ -1,71 +1,117 @@
-from transformers import AutoTokenizer
+class PromptGenerator:
+    @staticmethod
+    def create_short_summary_prompt_hu(sum_style: str) -> str:
+        if sum_style == "expert":
+            prompt = (
+                f"Kérlek, készíts egy rövid, 4-5 mondatos összefoglalót a következő szövegről, szakértői szókincset "
+                f"és diplomatikus stílust használva. Az összefoglaló legyen precíz, pontos, és kerülje a szubjektív megállapításokat."
+                f"Válaszod mindig magyar nyelven add vissza!"
+            )
+        elif sum_style == "student":
+            prompt = (
+                f"Kérlek, írj egy rövid, 4-5 mondatos összefoglalót, amely lelkes és segítőkész hangnemet tükröz. "
+                f"Az összefoglaló legyen érthető, de mutasson alapos ismereteket a témáról."
+                f"Válaszod mindig magyar nyelven add vissza!"
+            )
+        elif sum_style == "clear":
+            prompt = (
+                f"Kérlek, írj egy közérthető, 4-5 mondatos összefoglalót, amely egyszerű nyelvezettel, de részletesen "
+                f"magyarázza el a lényeget, hogy mindenki számára érthető legyen."
+                f"Válaszod mindig magyar nyelven add vissza!"
+            )
+        else:
+            prompt = (
+                f"Kérlek, készíts egy rövid, 4-5 mondatos összefoglalót a szöveg alapján."
+                f"Válaszod mindig magyar nyelven add vissza!"
+            )
+        return prompt
 
-def create_summary_prompt(sum_style:str, title:str) -> str:
-    """
-    Szövegösszefoglaló prompt készítése.
-    
-    :param text: Az összefoglalni kívánt szöveg.
-    :return: A LLM számára megadott prompt.
-    """
+    @staticmethod
+    def create_long_summary_prompt_hu(sum_style: str) -> str:
+        if sum_style == "expert":
+            prompt = (
+                f"Kérlek, készíts egy átfogó és részletes összefoglalót.\n"
+                f"A választ Markdown formázásban, rövid blokkokba rendezve, címekkel (`#`), listákkal.\n"
+                f"Használj szakértői szókincset és diplomatikus stílust. Az összefoglaló legyen jól strukturált, "
+                f"pontosan tükrözze a szöveg tartalmát, és kerülje az általánosításokat."
+                f"Válaszod mindig magyar nyelven add vissza!"
+            )
+        elif sum_style == "student":
+            prompt = (
+                f"Kérlek, készíts egy átfogó és részletes összefoglalót\n "
+                f"A választ Markdown formázásban, rövid blokkokba rendezve, címekkel (`#`), listákkal.\n"
+                f"Az összefoglaló legyen lelkes és segítőkész hangvételű, mutassa meg, hogy alaposan megértetted a témát, miközben közérthető marad."
+                f"Válaszod mindig magyar nyelven add vissza!"
+            )
+        elif sum_style == "clear":
+            prompt = (
+                f"Kérlek, készíts egy átfogó és részletes összefoglalót.\n"
+                f"A választ Markdown formázásban, rövid blokkokba rendezve, címekkel (`#`), listákkal.\n"
+                f"Az összefoglaló egyszerű nyelvezettel magyarázza el a főbb pontokat, hogy mindenki számára érthető legyen."
+                f"Válaszod mindig magyar nyelven add vissza!"
+            )
+        else:
+            prompt = (
+                f"Kérlek, készíts egy részletes összefoglalót, "
+                f"A választ Markdown formázásban, rövid blokkokba rendezve, címekkel (`#`), listákkal.\n"
+                f"Válaszod mindig magyar nyelven add vissza!"
+            )
+        return prompt
 
-    # Tokenizáló betöltése
-    tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-3.2-1B")
+    @staticmethod
+    def create_short_summary_prompt_en(sum_style: str) -> str:
+        if sum_style == "expert":
+            prompt = (
+                "Please create a short summary of 4-5 sentences for the following text using expert vocabulary "
+                "and a diplomatic tone. The summary should be precise, accurate, and avoid subjective statements."
+            )
+        elif sum_style == "student":
+            prompt = (
+                f"Write a detailed summary of the following text in 4-5 sentences:"
+                f"[chunk szöveg]"
+                f"Summary:"
+            )
+        elif sum_style == "clear":
+            prompt = (
+                "Please write a concise and clear summary of 4-5 sentences that explains the main points in simple terms, "
+                "making it understandable for everyone."
+            )
+        else:
+            prompt = (
+                "Please create a short summary of 4-5 sentences based on the text."
+            )
+        return prompt
 
-    # Szöveg, amit tokenizálni szeretnénk
-    text = "Ez egy példa szöveg, amit tokenekre szeretnénk bontani."
+    @staticmethod
+    def create_long_summary_prompt_en(sum_style: str) -> str:
+        if sum_style == "expert":
+            prompt = (
+                f"Please create a comprehensive and detailed summary.\n"
+                f"The answer is in Markdown format, organized into short blocks, with headings (`#`), lists.\n"
+                "Use expert vocabulary and a diplomatic tone. "
+                "The summary should be well-structured, accurately reflect the content of the text, and avoid generalizations."
+            )
+        elif sum_style == "student":
+            prompt = (
+                f"Focus on the main ideas and avoid unnecessary repetition.\n"
+                f"Highlight key concepts and implications.\n"
+                f"Please write a concise and coherent summary of the following text:\n\n"
+            )
+        elif sum_style == "clear":
+            prompt = (
+                f"Please create a detailed yet clear summary.\n"
+                f"The answer is in Markdown format, organized into short blocks, with headings (`#`), lists.\n"
+                f"The summary should explain the main points in simple language.\n"
+                f"making it easy to understand for everyone."
+            )
+        else:
+            prompt = (
+                f"Please create a detailed summary.\n"
+                f"The answer is in Markdown format, organized into short blocks, with headings (`#`), lists.\n"
+            )
+        return prompt
 
-    # Tokenizálás és tokenek száma
-    
-
-
-    if sum_style == "expert":
-        prompt = (
-                    "Magyar nyelven válaszolj, szakértői szinten, precíz technikai terminológiával, részletes magyarázatokkal.\n"
-                    "Koncentrálj az összetett technikai kihívásokra, specifikus részletekkel, számadatokkal és műszaki betekintéssel.\n"
-                    "Tartsd meg a formális, szakmai hangnemet, amely megfelel egy technikai jelentés stílusának.\n"
-                    "Az összefoglaló maximum 5-6 mondat legyen, ne használj „összefoglaló” nevű címet."
-                )
-    elif sum_style == "student":
-        prompt = (
-                    "You are an AI assistant helping a student understand complex documents. Your task is to write a simple and easy-to-understand summary based on the following information in Markdown format:\n\n"
-                    "Your answer should always be in Hungarian!\n"
-                    "When writing the summary, please consider the following:\n"
-                    "- Explain complicated terms in an easy-to-understand way.\n"
-                    "- Avoid using technical jargon unless necessary, and provide definitions when you do.\n"
-                    "- Focus on the main points and key takeaways.\n"
-                    "- Keep the language simple and clear, as if writing notes for a beginner.\n"
-                    "- Write the summary using Markdown formatting, including headings, and bold text for emphasis. Often use bullet points.\n\n"
-                    "Based on this, please generate an easy-to-understand summary in Markdown format and never make a headline with the title 'summary'."
-                )
-    elif sum_style == "clear":
-        prompt = (
-                    "You are an AI assistant tasked with writing a clear and straightforward summary based on the following information. The summary should be written in Markdown format:\n\n"
-                    "Your answer should always be in Hungarian!\n"
-                    "When writing the summary, please consider the following:\n"
-                    "- Use simple, direct language that anyone can understand.\n"
-                    "- Focus on the main ideas without unnecessary details.\n"
-                    "- Avoid complex terminology and explain any key terms clearly.\n"
-                    "- Provide a concise overview that captures the essential points.\n"
-                    "- Write the summary using Markdown formatting, including headings, lists, and bold text for key points.\n\n"
-                    "Based on this information, please generate a clear and easy-to-read summary in Markdown format."
-                    
-                )
-    else:
-        prompt = (
-                    f"Start with: '# I would like to share some information about the contents of the {title} file.'"
-                    "When writing the summary, please consider the following:\n"
-                    "- Write the summary using Markdown formatting, including headings, lists, and bold text for key points.\n"
-                    "- Always write the summary in Hungarian!\n"
-                    "- Try to keep all the content\n"
-                )
-
-    return prompt
-
-def cannotBeInterpreted(question:str) -> str:
-    prompt = (
-                    "Apologize to the user, but let them know that you did not receive enough information to answer this question and do all this with markdown style."
-                    "Your answer should always be in Hungarian!\n"
-                    "Draw the user's attention to the fact that you cannot give a hundred precent sure answer, but you have looked for possible solutions on the Internet, which are the following."
-                    "Really try to provide a very relevant answer to this: {question}"
-                )
-    return ""
+    #f"Please create a detailed and thorough summary. \n"
+    #f"The answer is in Markdown format, organized into short blocks, with headings (`#`), lists.\n"
+    #f"The summary should have an enthusiastic and helpful tone.\n" 
+    #f"Demonstrating that you have a deep understanding of the topic while remaining easy to understand."

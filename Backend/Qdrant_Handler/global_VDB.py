@@ -109,7 +109,7 @@ def upsert_embeddings(collection_name: str, embeddings: list, chunks: list):
 ############################################################################
 # Releváns adatok keresése
 ############################################################################
-def search_relevant(query: str, collection_name: str, top_k: int = 10) -> list:
+def search_relevant(query: str, collection_name: str, top_k: int = 5) -> list:
     try:
         query_embedding = embedding_model.embed_query(query)
 
@@ -134,55 +134,41 @@ def search_relevant(query: str, collection_name: str, top_k: int = 10) -> list:
         logging.error(f"Hiba történt a releváns dokumentumok keresése során: {str(e)}")
         return []
 
-def store_respond(file_contents: Dict[str, str], collection_name: str) -> Dict:
-    all_chunks = []
-    all_embeddings = []
-    vector_size = None
+def store_string_to_qdrant( text: str, who: str, collection_name: str):
 
-    for filename, content in file_contents.items():
-        try:
-            chunks = dynamic_semantic_chunk_splitter(content)
-            logging.info(f"{len(chunks)} chunk generálva a(z) {filename} fájlhoz.")
-
-            embeddings = generate_embeddings(chunks)
-
-            all_chunks.extend([
-                {"chunk": chunk, "text_title": filename} for chunk in chunks
-            ])
-            all_embeddings.extend(embeddings)
-
-            if vector_size is None:
-                vector_size = len(embeddings[0])
-
-        except Exception as e:
-            logging.error(f"Hiba történt a(z) {filename} fájl feldolgozása során: {str(e)}")
-
-    upsert_embeddings(collection_name, all_embeddings, all_chunks)
-
-    return {"status": "success", "chunks": len(all_chunks)}
-
-
-def search_relevantLocal(query: str, collection_name: str, top_k: int = 5) -> list:
     try:
-        query_embedding = embedding_model.encode(query).tolist()
+        # Ellenőrizd, hogy a gyűjtemény létezik-e, ha nem, hozd létre
+        vector_size = len(embedding_model.embed_query(text))  # Alapértelmezett vektorméret meghatározása
+        try:
+            client.get_collection(collection_name)
+        except Exception:
+            initialize_qdrant(collection_name, vector_size)
 
-        search_results = client.search(
+        # Szöveg felosztása chunkokra
+        chunks = dynamic_semantic_chunk_splitter(text)
+
+        # Embeddingek generálása a chunkokhoz
+        embeddings = generate_embeddings(chunks)
+
+        # Qdrant pontok előkészítése
+        points = [
+            {
+                "id": str(uuid.uuid4()),  # Egyedi azonosító
+                "vector": embeddings[i],  # Embedding a chunk-hoz
+                "payload": {
+                    "chunk": chunks[i],  # Szöveg chunk
+                    "title": who,        # "user" vagy "bot"
+                }
+            }
+            for i in range(len(chunks))
+        ]
+        # Pontok feltöltése a gyűjteménybe
+        client.upsert(
             collection_name=collection_name,
-            query_vector=query_embedding,
-            limit=top_k
+            points=points
         )
 
-        relevant_docs = []
-        for result in search_results:
-            payload = result.payload
-            relevant_docs.append({
-                "content": payload["chunk"],
-                "title": payload.get("text_title", "N/A"),
-                "score": result.score
-            })
-
-        return relevant_docs
+        logging.info(f"{len(points)} pont sikeresen feltöltve a {collection_name} gyűjteménybe.")
 
     except Exception as e:
-        logging.error(f"Hiba történt a releváns dokumentumok keresése során: {str(e)}")
-        return []
+        logging.error(f"Hiba történt a dokumentum tárolása során: {str(e)}")

@@ -10,7 +10,7 @@ type Milestone = {
 let summary: string = "";
 let milestones: Milestone[] = [];
 
-// Mérföldkövek lekérése a backendtől
+
 async function fetchMilestones() {
   try {
       const response = await fetch("http://localhost:8000/milestones");
@@ -25,13 +25,13 @@ async function fetchMilestones() {
 }
 async function processFiles() {
   try {
-    // API hívás a backend szerverhez
+
     const response = await fetch("http://localhost:8000/api/createSummary", {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ text: "Ez egy példa input szöveg" }) // Példa input adat
+      body: JSON.stringify({ text: "Ez egy példa input szöveg" })
     });
 
     if (!response.ok) {
@@ -39,10 +39,10 @@ async function processFiles() {
     } else {
       const data = await response.json();
 
-      // Ellenőrzés és az összegzés tárolása a store-ban
+
       if (data && data.final_summary) {
-        summaryStore.set(data.final_summary); // Csak az összegzés string-jét tároljuk
-        goto('/chatbot'); // Átirányítás a chatbot oldalra
+        summaryStore.set(data.final_summary);
+        goto('/chatbot');
       } else {
         console.error("Hiba: az összegzés nem érkezett meg a szervertől.");
       }
@@ -51,7 +51,7 @@ async function processFiles() {
     console.error("API hiba:", error);
   }
 }
-// Automatikus frissítés 2 másodpercenként
+
 onMount(() => {
   fetchMilestones();
   processFiles();
