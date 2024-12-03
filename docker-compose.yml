@@ -1,27 +1,21 @@
-version: '3.9'
+version: '3.8'
 
 services:
   backend:
     build:
-      context: ./backend
-      dockerfile: Dockerfile
+      context: ./Backend
     ports:
-      - "8000:8000"
+      - "8000:8000"  # Map Uvicorn server port
+    volumes:
+      - ./Backend:/app  # Mount backend source code
     environment:
-      - OPENAI_API_KEY=your_openai_api_key
-    depends_on:
-      - qdrant
-
-  qdrant:
-    image: qdrant/qdrant:v1.3.0
-    ports:
-      - "6333:6333"
+      - PYTHONUNBUFFERED=1  # Ensure Python output is logged in real-time
 
   frontend:
     build:
-      context: ./frontend
-      dockerfile: Dockerfile
+      context: ./Frontend/Sveltekit
     ports:
-      - "5173:5173"
-    depends_on:
-      - backend
+      - "5173:5173"  # Map SvelteKit development server port
+    volumes:
+      - ./Frontend/Sveltekit:/app  # Mount frontend source code
+    command: ["npm", "run", "dev", "--", "--host"]  # Run development server
