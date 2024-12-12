@@ -10,6 +10,7 @@
           if (!res.ok) {
               throw new Error(`Hiba: ${res.status} - ${res.statusText}`);
           }
+          window.location.href = "/upload";
           const data = await res.json();
           message = data.message;
       } catch (err) {

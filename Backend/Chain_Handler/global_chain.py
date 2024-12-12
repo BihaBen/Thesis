@@ -153,7 +153,7 @@ class SummarizeContentChain(Chain):
 # Initialize chains
 ###########################################################################
 load_files_chain = LoadFilesChain()
-vector_store_chain = VectorStoreChain(vector_size=512)
+vector_store_chain = VectorStoreChain(vector_size=1536)
 analyze_process_chain = AnalyzeProcessChain()
 summarize_content_chain = SummarizeContentChain()
 
@@ -161,5 +161,5 @@ global_summarizer_chain = SequentialChain(
     chains=[load_files_chain, vector_store_chain, analyze_process_chain, summarize_content_chain],
     input_variables=["file_path", "stored_data"],
     output_variables=["final_summary"]
-)
+ )
 

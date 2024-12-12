@@ -20,15 +20,15 @@ app.add_middleware(
 ##########################################################################
 # TEST: GET endpoints
 ##########################################################################
-stored_data = {}
+meta_data = {}
 
 @app.get("/")
 async def read_root():
-    return {"Website ": "The website is running successfully!"}
+    return {"Website ": "A szerveroldal felülete látható!"}
 
 @app.get("/api/metadata")
 async def get_data():
-    return {"data": stored_data}
+    return {"data": meta_data}
 
 @app.get("/status")
 async def get_status():
@@ -50,7 +50,9 @@ async def save_alldata(
     files: List[UploadFile] = File(...)
 ):
     global input_data
+    global meta_data
     try:
+        file_meta_data = []
         stored_data = {
             "chatbotStyle": chatbotStyle,
             "isStoreInLocal": isStoreInLocal.lower() == "true",
@@ -63,8 +65,13 @@ async def save_alldata(
             with open(file_path, "wb") as out_file:
                 content = await file.read()
                 out_file.write(content)
+                file_size = os.path.getsize(file_path)
+                file_meta_data.append({
+                "filename": file.filename,
+                "size": file_size
+            })
             print(f"Fájl lementve: {file_path}")
-
+        meta_data["files"] = file_meta_data
         input_data = {
             "file_path": temp_dir,
             "stored_data": stored_data

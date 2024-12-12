@@ -16,7 +16,6 @@
       isButtonDisabled = uploadedFiles.length === 0;
     }
       clearUploadedFiles();
-
       uploadedFiles.forEach(file => {
         const fileSize = file.size < 1024
           ? `${file.size} Bytes`
@@ -25,9 +24,7 @@
           : file.size < 1024 * 1024 * 1024
           ? `${(file.size / (1024 * 1024)).toFixed(2)} MB`
           : `${(file.size / (1024 * 1024 * 1024)).toFixed(2)} GB`;
-
         const fileString = `${file.name}: (${fileSize})`;
-
         console.log("Hozzáadott fájl string:", fileString);
         addUploadedFile(fileString);
       });
@@ -43,32 +40,23 @@
 
   async function SaveAllData() {
     const formData = new FormData();
-
     formData.append("isStoreInLocal", String(isStoreInLocal));
     formData.append("chatbotStyle", chatbotStyle);
-
-    uploadedFiles.forEach((file) => {
-      formData.append("files", file);
-    });
-
+    uploadedFiles.forEach((file) => {formData.append("files", file);});
     try {
-
-      const response = await fetch('http://localhost:8000/api/saveAllData', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        console.error("Hiba a metaadatok elküldésekor:", response.status);
-        return;
-      }
-
-
-      window.location.href = "/loading";
-    } catch (error) {
+        const response = await fetch('http://localhost:8000/api/saveAllData', {
+          method: 'POST',
+          body: formData,
+        });
+        if (!response.ok) {
+          console.error("Hiba a metaadatok elküldésekor:", response.status);
+          return;
+        }
+        window.location.href = "/loading";
+      } catch (error) {
       console.error("Hálózati hiba történt:", error);
     }
-}
+ }
 
 </script>
 

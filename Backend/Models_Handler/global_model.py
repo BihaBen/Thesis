@@ -172,4 +172,3 @@ class GPT4:
         except Exception as e:
             logging.error(f"Hiba történt a GPT-4 válasz generálása során: {str(e)}")
             return "Hiba történt a válasz generálása során."
-

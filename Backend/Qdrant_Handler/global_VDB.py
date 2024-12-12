@@ -56,7 +56,7 @@ def process_document(file_contents: Dict[str, str], collection_name: str) -> Dic
 
     return {"status": "success", "chunks": len(all_chunks)}
 
-def dynamic_semantic_chunk_splitter(text: str, max_chunk_size: int = 1000) -> list:
+def dynamic_semantic_chunk_splitter(text: str, max_chunk_size: int = 1000, overlap_size: int = 100) -> list:
     paragraphs = text.split("\n")
     chunks = []
     current_chunk = []
@@ -64,9 +64,12 @@ def dynamic_semantic_chunk_splitter(text: str, max_chunk_size: int = 1000) -> li
 
     for paragraph in paragraphs:
         if current_chunk_size + len(paragraph) > max_chunk_size:
-            chunks.append(" ".join(current_chunk))
-            current_chunk = []
-            current_chunk_size = 0
+            chunk_text = " ".join(current_chunk)
+            chunks.append(chunk_text)
+
+            overlap_text = chunk_text[-overlap_size:]
+            current_chunk = [overlap_text]
+            current_chunk_size = len(overlap_text)
 
         current_chunk.append(paragraph)
         current_chunk_size += len(paragraph)
@@ -74,21 +77,15 @@ def dynamic_semantic_chunk_splitter(text: str, max_chunk_size: int = 1000) -> li
     if current_chunk:
         chunks.append(" ".join(current_chunk))
 
-    logging.info(f"{len(chunks)} darabra bontottuk a szöveget.")
+    logging.info(f"{len(chunks)} darabra bontottuk a szöveget átlapolással.")
     return chunks
 
 def generate_embeddings(text_chunks: list) -> list:
-    """
-    Embeddingek generálása a chunkokhoz.
-    """
     logging.info(f"Embeddingek generálása {len(text_chunks)} chunkhoz.")
     embeddings = embedding_model.embed_documents(text_chunks)
     return embeddings
 
 def upsert_embeddings(collection_name: str, embeddings: list, chunks: list):
-    """
-    Embeddingek feltöltése a Qdrant adatbázisba.
-    """
     logging.info(f"Embeddingek feltöltése a {collection_name} gyűjteménybe.")
 
     points = [
@@ -135,34 +132,33 @@ def search_relevant(query: str, collection_name: str, top_k: int = 5) -> list:
         return []
 
 def store_string_to_qdrant( text: str, who: str, collection_name: str):
-
     try:
-        # Ellenőrizd, hogy a gyűjtemény létezik-e, ha nem, hozd létre
-        vector_size = len(embedding_model.embed_query(text))  # Alapértelmezett vektorméret meghatározása
+        
+        vector_size = len(embedding_model.embed_query(text))
         try:
             client.get_collection(collection_name)
         except Exception:
             initialize_qdrant(collection_name, vector_size)
 
-        # Szöveg felosztása chunkokra
+        
         chunks = dynamic_semantic_chunk_splitter(text)
 
-        # Embeddingek generálása a chunkokhoz
+        
         embeddings = generate_embeddings(chunks)
 
-        # Qdrant pontok előkészítése
+        
         points = [
             {
-                "id": str(uuid.uuid4()),  # Egyedi azonosító
-                "vector": embeddings[i],  # Embedding a chunk-hoz
+                "id": str(uuid.uuid4()),
+                "vector": embeddings[i],
                 "payload": {
-                    "chunk": chunks[i],  # Szöveg chunk
-                    "title": who,        # "user" vagy "bot"
+                    "chunk": chunks[i],
+                    "title": who,
                 }
             }
             for i in range(len(chunks))
         ]
-        # Pontok feltöltése a gyűjteménybe
+        
         client.upsert(
             collection_name=collection_name,
             points=points

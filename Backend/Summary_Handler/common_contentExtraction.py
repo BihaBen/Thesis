@@ -46,33 +46,33 @@ def extract_entities(text:str):
         hun_entity= local_translator.instant_translate_to_hungarian(ent.text)
         if ent.label_ == "PERSON":
             if ent.text and ent.text[0].isupper():
-                persons.append(hun_entity)
+                persons.append(ent.text)
         elif ent.label_ == "NORP":
-            norps.append(hun_entity)
+            norps.append(ent.text)
         elif ent.label_ == "FAC":
-            facs.append(hun_entity)
+            facs.append(ent.text)
         elif ent.label_ == "ORG":
-            orgs.append(hun_entity)
+            orgs.append(ent.text)
         elif ent.label_ == "GPE":
-            gpes.append(hun_entity)
+            gpes.append(ent.text)
         elif ent.label_ == "LOC":
-            locs.append(hun_entity)
+            locs.append(ent.text)
         elif ent.label_ == "PRODUCT":
-            products.append(hun_entity)
+            products.append(ent.text)
         elif ent.label_ == "EVENT":
-            events.append(hun_entity)
+            events.append(ent.text)
         elif ent.label_ == "LAW":
-            laws.append(hun_entity)
+            laws.append(ent.text)
         elif ent.label_ == "WORK_OF_ART":
-            works_of_art.append(hun_entity)
+            works_of_art.append(ent.text)
         elif ent.label_ == "LANGUAGE":
-            languages.append(hun_entity)
+            languages.append(ent.text)
         elif ent.label_ == "TIME":
-            times.append(hun_entity)
+            times.append(ent.text)
         elif ent.label_ == "MONEY":
-            monies.append(hun_entity)
+            monies.append(ent.text)
         elif ent.label_ == "ORDINAL":
-            ordinals.append(hun_entity)
+            ordinals.append(ent.text)
     
     # Dictionary for different categories
     results = {

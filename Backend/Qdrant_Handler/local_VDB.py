@@ -124,23 +124,19 @@ def search_relevant(query: str, collection_name: str, top_k: int = 3) -> List[Di
     
 def save_text_to_qdrant(text: str, who: str, collection_name: str):
     try:
-        # Generálj embeddinget a szövegből
         embedding = embedding_model.encode([text], show_progress_bar=False)[0].tolist()
         
-        # Gyűjtemény inicializálása, ha még nincs
         try:
             client.get_collection(collection_name)
         except Exception:
-            vector_size = 384  # Ez az embedding modell kimenetének mérete
+            vector_size = 384
             initialize_qdrant(collection_name, vector_size)
 
-        # Dokumentum készítése
         document_payload = {
-            "chunk": text,  # A tényleges szöveg
-            "text_title": who  # A dokumentum típusa (bot vagy user)
+            "chunk": text,
+            "text_title": who
         }
 
-        # Pont létrehozása és feltöltés
         point = {
             "id": str(uuid.uuid4()),
             "vector": embedding,

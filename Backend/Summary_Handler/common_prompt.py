@@ -63,18 +63,14 @@ class PromptGenerator:
         if sum_style == "expert":
             prompt = (
                 "Please create a short summary of 4-5 sentences for the following text using expert vocabulary "
-                "and a diplomatic tone. The summary should be precise, accurate, and avoid subjective statements."
             )
         elif sum_style == "student":
             prompt = (
-                f"Write a detailed summary of the following text in 4-5 sentences:"
-                f"[chunk szöveg]"
-                f"Summary:"
+                f"Write a detailed summary of the following text in 4-5 sentences."
             )
         elif sum_style == "clear":
             prompt = (
                 "Please write a concise and clear summary of 4-5 sentences that explains the main points in simple terms, "
-                "making it understandable for everyone."
             )
         else:
             prompt = (
@@ -87,7 +83,6 @@ class PromptGenerator:
         if sum_style == "expert":
             prompt = (
                 f"Please create a comprehensive and detailed summary.\n"
-                f"The answer is in Markdown format, organized into short blocks, with headings (`#`), lists.\n"
                 "Use expert vocabulary and a diplomatic tone. "
                 "The summary should be well-structured, accurately reflect the content of the text, and avoid generalizations."
             )
@@ -100,18 +95,11 @@ class PromptGenerator:
         elif sum_style == "clear":
             prompt = (
                 f"Please create a detailed yet clear summary.\n"
-                f"The answer is in Markdown format, organized into short blocks, with headings (`#`), lists.\n"
                 f"The summary should explain the main points in simple language.\n"
                 f"making it easy to understand for everyone."
             )
         else:
             prompt = (
                 f"Please create a detailed summary.\n"
-                f"The answer is in Markdown format, organized into short blocks, with headings (`#`), lists.\n"
             )
         return prompt
-
-    #f"Please create a detailed and thorough summary. \n"
-    #f"The answer is in Markdown format, organized into short blocks, with headings (`#`), lists.\n"
-    #f"The summary should have an enthusiastic and helpful tone.\n" 
-    #f"Demonstrating that you have a deep understanding of the topic while remaining easy to understand."

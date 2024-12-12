@@ -2,14 +2,16 @@
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
   import { summaryStore } from '$lib/stores/summaryStore';
+
+  let summary: string = "";
+
+
 type Milestone = {
   id: number;
   title: string;
   completed: boolean;
 };
-let summary: string = "";
 let milestones: Milestone[] = [];
-
 
 async function fetchMilestones() {
   try {
@@ -23,6 +25,8 @@ async function fetchMilestones() {
       console.error("API hiba:", error);
   }
 }
+
+
 async function processFiles() {
   try {
 
@@ -53,11 +57,13 @@ async function processFiles() {
 }
 
 onMount(() => {
-  fetchMilestones();
-  processFiles();
-  const interval = setInterval(fetchMilestones, 5000);
-  return () => clearInterval(interval);
+    fetchMilestones();
+    processFiles();
+    const interval = setInterval(fetchMilestones, 3000);
+    return () => clearInterval(interval);
 });
+
+
 </script>
 
 <style>

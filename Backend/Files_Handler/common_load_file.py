@@ -21,10 +21,6 @@ AudioSegment.converter = r'C:\Program Files\Ffmpeg\ffmpeg.exe'
 
 
 def process_files_in_directory(file_path: str) -> Dict[str, str]:
-    """
-    Végigmegy a megadott könyvtáron, feldolgozza az összes fájlt, és egy dictionary-t ad vissza,
-    amely tartalmazza a fájlneveket és azok tartalmát.
-    """
     if not os.path.isdir(file_path):
         raise FileNotFoundError(f"A megadott könyvtár nem található: {file_path}")
 
@@ -52,33 +48,28 @@ def process_files_in_directory(file_path: str) -> Dict[str, str]:
     return file_contents
 
 def extract_text_from_file_sync(file_path: str) -> str:
-    """
-    Szinkron módon kinyeri a fájl tartalmát a kiterjesztés alapján.
-    """
     file_extension = os.path.splitext(file_path)[1].lower()
 
     if file_extension == '.pdf':
         return extract_text_from_pdf(file_path)
-    elif file_extension in ['.docx', '.doc']:
+    elif file_extension in '.docx':
         return extract_text_from_docx(file_path)
     elif file_extension == '.txt':
         return extract_text_from_txt(file_path)
     elif file_extension == '.json':
         return extract_text_from_json(file_path)
-    elif file_extension in ['.mp3', '.wav']:
+    elif file_extension in ['.mp3']:
         return extract_text_from_audio(file_path)
-    elif file_extension == '.html':
-        return extract_text_from_html(file_path)
     elif file_extension == '.epub':
         return extract_text_from_epub(file_path)
-    elif file_extension in ['.zip', '.7zip']:
+    elif file_extension in '.zip':
         return extract_text_from_zip(file_path)
-    elif file_extension in ['.mp4', '.wmv']:
+    elif file_extension in '.mp4':
         return extract_text_from_video(file_path)
-    elif file_extension in ['.png', '.jpg', '.jpeg']:
+    elif file_extension in ['.png', '.jpg']:
         return extract_text_from_image(file_path)
     else:
-        return "Unsupported file format"
+        return "Nem támogatott fájl formátum!"
 
 
 # Extract text from PDF
@@ -182,12 +173,6 @@ def extract_text_from_zip(file_path):
 
 # Extract text from images (PNG, JPG, JPEG) using OCR
 def extract_text_from_image(file_path: str) -> str:
-    """
-    Extract text from PNG, JPG, JPEG images.
-    
-    :param file_path: Path to the image file.
-    :return: Text extracted from the image.
-    """
     try:
         img = Image.open(file_path)
         text = pytesseract.image_to_string(img)

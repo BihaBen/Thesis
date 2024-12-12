@@ -1,21 +1,19 @@
 version: '3.8'
-
 services:
   backend:
     build:
       context: ./Backend
     ports:
-      - "8000:8000"  # Map Uvicorn server port
+      - "8000:8000"
     volumes:
-      - ./Backend:/app  # Mount backend source code
+      - ./Backend:/app
     environment:
-      - PYTHONUNBUFFERED=1  # Ensure Python output is logged in real-time
-
+      - PYTHONUNBUFFERED=1
   frontend:
     build:
       context: ./Frontend/Sveltekit
     ports:
-      - "5173:5173"  # Map SvelteKit development server port
+      - "5173:5173"
     volumes:
-      - ./Frontend/Sveltekit:/app  # Mount frontend source code
-    command: ["npm", "run", "dev", "--", "--host"]  # Run development server
+      - ./Frontend/Sveltekit:/app
+    command: ["npm", "run", "dev", "--", "--host"]
